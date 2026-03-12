@@ -256,6 +256,42 @@ function SelectedWork() {
       type: 'Photography',
       gradient: 'from-indigo-900/50 via-indigo-950/30 to-[#0A0A0A]',
     },
+    {
+      title: 'NAV — OMW2REXDALE',
+      type: 'BTS Photo / Video',
+      gradient: 'from-slate-700/60 via-slate-900/40 to-[#0A0A0A]',
+      link: 'https://www.instagram.com/p/DHymTNkpapt/?img_index=1',
+    },
+    {
+      title: 'Fridayy — Below Zero',
+      type: 'Music Video Reels',
+      gradient: 'from-cyan-900/50 via-cyan-950/30 to-[#0A0A0A]',
+      link: 'https://www.instagram.com/reel/DOEYRhtjnlm/',
+    },
+    {
+      title: 'Nige — Slide / Right One',
+      type: 'Music Video Reels',
+      gradient: 'from-orange-900/50 via-orange-950/30 to-[#0A0A0A]',
+      link: 'https://www.instagram.com/reel/DKvOqCPSmpD/',
+    },
+    {
+      title: 'Raf Saperra × Vogue India',
+      type: 'Editorial Photography',
+      gradient: 'from-fuchsia-900/50 via-fuchsia-950/30 to-[#0A0A0A]',
+      link: 'https://www.vogue.in/content/raf-saperra-will-make-you-groove-to-pure-punjabi-folk-no-matter-where-in-the-world-you-are',
+    },
+    {
+      title: 'Trell The Trainer',
+      type: 'Brand Film',
+      gradient: 'from-green-900/50 via-green-950/30 to-[#0A0A0A]',
+      link: 'https://www.instagram.com/reel/DRZuMK9DjwK/',
+    },
+    {
+      title: 'Capital Corner Group',
+      type: 'Commercial',
+      gradient: 'from-sky-900/50 via-sky-950/30 to-[#0A0A0A]',
+      link: 'https://www.instagram.com/reel/DS0f0otktHC/',
+    },
   ]
 
   return (
@@ -272,8 +308,11 @@ function SelectedWork() {
         {/* 2-column grid */}
         <div className="grid md:grid-cols-2 gap-4">
           {projects.map((project, i) => (
-            <div
+            <a
               key={i}
+              href={project.link || '#work'}
+              target={project.link ? '_blank' : undefined}
+              rel={project.link ? 'noopener noreferrer' : undefined}
               className={`animate-on-scroll delay-${(i % 4) + 1} group relative aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer transition-transform duration-500 hover:scale-[1.02]`}
             >
               {/* Gradient background */}
@@ -301,7 +340,7 @@ function SelectedWork() {
 
               {/* Hover overlay */}
               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
-            </div>
+            </a>
           ))}
         </div>
       </div>

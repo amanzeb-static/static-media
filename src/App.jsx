@@ -789,11 +789,25 @@ function Contact() {
   const sectionRef = useScrollAnimation()
   const [formData, setFormData] = useState({ name: '', email: '', message: '' })
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setSubmitted(true)
-    setTimeout(() => setSubmitted(false), 3000)
+    setLoading(true)
+    try {
+      const res = await fetch('https://formspree.io/f/xeergbww', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+      if (res.ok) {
+        setSubmitted(true)
+        setFormData({ name: '', email: '', message: '' })
+      }
+    } catch (err) {
+      console.error(err)
+    }
+    setLoading(false)
   }
 
   return (
@@ -857,9 +871,10 @@ function Contact() {
               </div>
               <button
                 type="submit"
-                className="w-full bg-gold hover:bg-gold-light text-primary font-sans font-semibold text-[14px] py-3.5 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-gold/20"
+                disabled={loading}
+                className="w-full bg-gold hover:bg-gold-light text-primary font-sans font-semibold text-[14px] py-3.5 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-gold/20 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Send Message
+                {loading ? 'Sending...' : 'Send Message'}
               </button>
             </form>
           )}

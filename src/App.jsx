@@ -15,11 +15,64 @@ function useScrollAnimation() {
       },
       { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
     )
-    const elements = ref.current?.querySelectorAll('.animate-on-scroll')
+    const selectors = '.animate-on-scroll, .animate-from-left, .animate-from-right, .animate-scale-in'
+    const elements = ref.current?.querySelectorAll(selectors)
     elements?.forEach((el) => observer.observe(el))
     return () => observer.disconnect()
   }, [])
   return ref
+}
+
+/* =======================================================
+   COUNTER HOOK
+   ======================================================= */
+function useCounter(target, duration = 1400) {
+  const [display, setDisplay] = useState('0')
+  const ref = useRef(null)
+  const hasRun = useRef(false)
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasRun.current) {
+          hasRun.current = true
+          const match = target.match(/^(\d+)(.*)/)
+          if (!match) { setDisplay(target); return }
+          const num = parseInt(match[1])
+          const suffix = match[2]
+          const startTime = performance.now()
+          const animate = (now) => {
+            const elapsed = now - startTime
+            const progress = Math.min(elapsed / duration, 1)
+            const eased = 1 - Math.pow(2, -10 * progress)
+            setDisplay(Math.floor(eased * num) + suffix)
+            if (progress < 1) requestAnimationFrame(animate)
+            else setDisplay(target)
+          }
+          requestAnimationFrame(animate)
+        }
+      },
+      { threshold: 0.5 }
+    )
+    if (ref.current) observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [target, duration])
+  return [display, ref]
+}
+
+/* =======================================================
+   SCROLL PROGRESS BAR
+   ======================================================= */
+function ScrollProgress() {
+  const [progress, setProgress] = useState(0)
+  useEffect(() => {
+    const handleScroll = () => {
+      const total = document.documentElement.scrollHeight - window.innerHeight
+      setProgress(total > 0 ? (window.scrollY / total) * 100 : 0)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+  return <div className="scroll-progress" style={{ width: `${progress}%` }} />
 }
 
 /* =======================================================
@@ -48,8 +101,7 @@ function FloatingNav() {
       <div className="hidden md:flex items-center gap-1 bg-[#111111]/90 backdrop-blur-xl border border-white/[0.06] rounded-full px-2 py-1.5 shadow-2xl shadow-black/50">
         {/* Logo */}
         <a href="#" className="font-serif text-lg px-4 py-1.5 rounded-full hover:bg-white/5 transition-colors">
-          <span className="text-white">A</span>
-          <span className="text-gold italic">manzeb</span>
+          <span className="text-white">amanzeb</span>
         </a>
 
         <div className="w-[1px] h-5 bg-white/10 mx-1" />
@@ -77,8 +129,7 @@ function FloatingNav() {
       {/* Mobile pill */}
       <div className="md:hidden flex items-center gap-3 bg-[#111111]/90 backdrop-blur-xl border border-white/[0.06] rounded-full px-4 py-2 shadow-2xl shadow-black/50">
         <a href="#" className="font-serif text-lg">
-          <span className="text-white">A</span>
-          <span className="text-gold italic">manzeb</span>
+          <span className="text-white">amanzeb</span>
         </a>
         <button
           onClick={() => setMenuOpen(!menuOpen)}
@@ -133,57 +184,131 @@ function FloatingContact() {
   )
 }
 
+function HeroStat({ value, label }) {
+  const [display, ref] = useCounter(value)
+  const match = display.match(/^(\d+)(.*)/)
+  const num = match ? match[1] : display
+  const suffix = match ? match[2] : ''
+  return (
+    <div ref={ref}>
+      <p className="font-serif text-2xl text-white">
+        {num}<span className="text-base">{suffix}</span>
+      </p>
+      <p className="text-[11px] font-sans text-white/40 uppercase tracking-widest mt-0.5">{label}</p>
+    </div>
+  )
+}
+
 /* =======================================================
-   HERO — Bold, centered, front and center
+   HERO — Bold, cinematic, split layout
    ======================================================= */
 function Hero() {
+  const words = ['Storytelling', 'Photography', 'Direction', 'Editorial']
+  const [wordIndex, setWordIndex] = useState(0)
+  const [fading, setFading] = useState(false)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFading(true)
+      setTimeout(() => {
+        setWordIndex(i => (i + 1) % words.length)
+        setFading(false)
+      }, 350)
+    }, 2800)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
-    <section className="min-h-[90vh] flex flex-col justify-center px-6 pt-24 pb-16 max-w-3xl mx-auto">
-      {/* Availability badge */}
-      <div className="animate-on-scroll inline-flex items-center gap-2.5 bg-[#111111] border border-white/[0.06] rounded-full px-4 py-2 mb-8 w-fit">
-        <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-        <span className="text-[13px] font-sans text-white/60">Available for Inquiries</span>
-      </div>
+    <section className="min-h-[95vh] flex flex-col justify-center px-6 pt-24 pb-16">
 
-      {/* Headline */}
-      <h1 className="animate-on-scroll font-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[1] tracking-tight mb-8">
-        <span className="text-white/40">Cinematic</span>
-        <br />
-        <span className="text-white font-semibold">storytelling</span>
-      </h1>
+      {/* ── Split layout ── */}
+      <div className="max-w-6xl mx-auto w-full grid md:grid-cols-2 gap-12 items-center">
 
-      {/* Brand tag */}
-      <p className="animate-on-scroll delay-1 text-xs tracking-[0.25em] uppercase text-gold font-sans mb-6">
-        VIDEOGRAPHY & PHOTOGRAPHY ✦ EDITORIAL ✦ ORGANIC MARKETING
-      </p>
+        {/* Left: text */}
+        <div>
+          {/* Availability badge */}
+          <div className="animate-on-scroll inline-flex items-center gap-2.5 bg-[#111111]/80 border border-white/[0.06] rounded-full px-4 py-2 mb-8 w-fit backdrop-blur-sm">
+            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+            <span className="text-[13px] font-sans text-white/60">Available for Inquiries</span>
+          </div>
 
-      {/* Intro text */}
-      <div className="animate-on-scroll delay-2 space-y-4 mb-10 max-w-lg">
-        <p className="text-[15px] md:text-base font-sans text-white/50 leading-relaxed">
-          hello, I'm <span className="text-white font-medium">Amanzeb</span> — a cinematic content creator
-          based out of <span className="text-white font-medium">Virginia / Toronto</span>.
-        </p>
-        <p className="text-[15px] md:text-base font-sans text-white/50 leading-relaxed">
-          I create editorial photography & cinematic video content
-          for luxury brands, musicians, and visionaries who refuse to blend in.
-        </p>
-      </div>
+          {/* Headline with cycling word */}
+          <h1 className="animate-on-scroll font-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[1] tracking-tight mb-8">
+            <span className="text-white/40">Cinematic</span>
+            <br />
+            <span className={`cycle-word ${fading ? 'fade-out' : 'fade-in'} text-white font-semibold`}>
+              {words[wordIndex]}
+            </span>
+          </h1>
 
-      {/* CTA */}
-      <div className="animate-on-scroll delay-3">
-        <a
-          href="#contact"
-          className="inline-flex items-center gap-3 bg-[#111111] border border-white/[0.06] rounded-full pl-3 pr-6 py-2.5 hover:bg-gold group transition-all duration-300"
-        >
-          <span className="w-9 h-9 rounded-full bg-gold group-hover:bg-primary flex items-center justify-center transition-colors">
-            <svg className="w-4 h-4 text-primary group-hover:text-gold transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-          </span>
-          <span className="text-[14px] font-sans text-white font-medium group-hover:text-primary transition-colors">
-            Send me a message
-          </span>
-        </a>
+          {/* Brand tag */}
+          <p className="animate-on-scroll delay-1 text-xs tracking-[0.25em] uppercase text-gold font-sans mb-6">
+            VIDEOGRAPHY & PHOTOGRAPHY ✦ EDITORIAL ✦ ORGANIC MARKETING
+          </p>
+
+          {/* Intro text */}
+          <div className="animate-on-scroll delay-2 space-y-4 mb-8 max-w-lg">
+            <p className="text-[15px] md:text-base font-sans text-white/50 leading-relaxed">
+              Hello, I'm <span className="text-white font-medium">Amanzeb</span>, a cinematic content creator
+              based out of <span className="text-white font-medium">Northern Virginia</span>.
+            </p>
+            <p className="text-[15px] md:text-base font-sans text-white/50 leading-relaxed">
+              I create editorial photography & cinematic video content
+              for luxury brands, musicians, and visionaries who refuse to blend in.
+            </p>
+          </div>
+
+          {/* Stats strip */}
+          <div className="animate-on-scroll delay-2 flex items-center gap-8 mb-10">
+            <HeroStat value="100+" label="Videos" />
+            <div className="w-px h-8 bg-white/10" />
+            <HeroStat value="10M+" label="Views" />
+            <div className="w-px h-8 bg-white/10" />
+            <div>
+              <p className="font-serif text-xl text-white">Est.</p>
+              <p className="text-[11px] font-sans text-white/40 uppercase tracking-widest mt-0.5">2022</p>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="animate-on-scroll delay-3">
+            <a
+              href="#contact"
+              className="inline-flex items-center gap-3 bg-[#111111]/80 border border-white/[0.06] rounded-full pl-3 pr-6 py-2.5 hover:bg-gold group transition-all duration-300 backdrop-blur-sm"
+            >
+              <span className="w-9 h-9 rounded-full bg-gold group-hover:bg-primary flex items-center justify-center transition-colors">
+                <svg className="w-4 h-4 text-primary group-hover:text-gold transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </span>
+              <span className="text-[14px] font-sans text-white font-medium group-hover:text-primary transition-colors">
+                Send me a message
+              </span>
+            </a>
+          </div>
+        </div>
+
+        {/* Right: featured image */}
+        <div className="hidden md:flex justify-center items-center">
+          <div className="relative w-[340px] h-[440px]">
+            {/* Glow behind image */}
+            <div className="absolute inset-0 rounded-2xl bg-violet-700/20 blur-2xl scale-95 translate-y-4" />
+            {/* Image */}
+            <img
+              src="/about-photo.jpg"
+              alt="Amanzeb"
+              className="relative w-full h-full object-cover rounded-2xl border border-white/[0.08] shadow-2xl"
+            />
+            {/* Gold corner accent */}
+            <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-gold/60 rounded-tr-sm" />
+            <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-gold/60 rounded-bl-sm" />
+            {/* Floating label */}
+            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-[#111111]/90 backdrop-blur-sm border border-white/[0.06] rounded-full px-4 py-2 whitespace-nowrap">
+              <span className="text-[12px] font-sans text-white/60">Amanzeb · Northern Virginia</span>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
   )
@@ -194,24 +319,26 @@ function Hero() {
    ======================================================= */
 function SocialProof() {
   const sectionRef = useScrollAnimation()
-  const brands = ['NAV', 'CHRIS GREY', 'FRIDAYY', 'LIL TECCA', 'VOGUE INDIA', 'GRANDEUR', 'YOKO GOLD']
+  const brands = ['NAV', 'CHRIS GREY', 'FRIDAYY', 'VOGUE INDIA', 'YALLA APPAREL', 'JORDAN ADETUNJI', 'TV GUCCI', 'THE 97 COLLECTIVE', 'YUNG FAZO', 'TURKO', 'SAVV4X']
 
   return (
     <section ref={sectionRef} className="py-12 px-6 mb-8">
       <div className="max-w-5xl mx-auto">
         <div className="animate-on-scroll">
           <p className="text-center text-[13px] font-sans text-white/30 mb-8">
-            Trusted by <span className="text-white/50 font-medium">many</span>
+            Works Include
           </p>
-          <div className="flex flex-wrap justify-center items-center gap-x-10 gap-y-4">
-            {brands.map((brand, i) => (
-              <span
-                key={i}
-                className="text-lg md:text-xl font-serif text-white/20 hover:text-gold/60 transition-colors duration-500 cursor-default"
-              >
-                {brand}
-              </span>
-            ))}
+          <div className="marquee-container">
+            <div className="marquee-track">
+              {[...brands, ...brands].map((brand, i) => (
+                <span
+                  key={i}
+                  className="text-lg md:text-xl font-serif text-white/20 hover:text-gold/60 transition-colors duration-500 cursor-default mx-8"
+                >
+                  {brand}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -220,102 +347,256 @@ function SocialProof() {
 }
 
 /* =======================================================
+   YOUTUBE EMBED HELPER
+   ======================================================= */
+function getYouTubeEmbedUrl(url) {
+  if (!url) return null
+  const shortsMatch = url.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]+)/)
+  if (shortsMatch) return `https://www.youtube.com/embed/${shortsMatch[1]}`
+  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/)
+  if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`
+  const watchMatch = url.match(/[?&]v=([a-zA-Z0-9_-]+)/)
+  if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`
+  return null
+}
+
+/* =======================================================
+   PROJECT MODAL
+   ======================================================= */
+function ProjectModal({ project, onClose }) {
+  const embedUrl = getYouTubeEmbedUrl(project.link)
+  const isShort = project.link?.includes('/shorts/')
+
+  useEffect(() => {
+    const handleKey = (e) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleKey)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', handleKey)
+      document.body.style.overflow = ''
+    }
+  }, [onClose])
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className={`relative w-full ${isShort ? 'max-w-sm' : 'max-w-3xl'}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute -top-10 right-0 text-white/60 hover:text-white transition-colors font-sans text-sm flex items-center gap-2"
+        >
+          Close
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        {/* Video */}
+        <div className={`${isShort ? 'aspect-[9/16]' : 'aspect-video'} rounded-2xl overflow-hidden bg-black`}>
+          <iframe
+            src={`${embedUrl}?autoplay=1`}
+            title={project.title}
+            className="w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+
+        {/* Project info */}
+        <div className="mt-4 flex items-center justify-between">
+          <div>
+            <h3 className="font-serif text-xl text-white">{project.title}</h3>
+            <p className="text-sm font-sans text-white/50 mt-0.5">
+              {project.type}{project.year ? ` · ${project.year}` : ''}
+            </p>
+          </div>
+          <a
+            href={project.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-sans text-gold hover:text-white transition-colors flex items-center gap-1.5 whitespace-nowrap"
+          >
+            Watch on YouTube
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M17 7H7M17 7v10" />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* =======================================================
    SELECTED WORK — 2-column project grid
    ======================================================= */
 function SelectedWork() {
   const sectionRef = useScrollAnimation()
+  const [selectedProject, setSelectedProject] = useState(null)
 
   const projects = [
     {
-      title: 'NAV × Grandeur',
-      type: 'Music Video',
-      gradient: 'from-purple-900/60 via-purple-950/40 to-[#0A0A0A]',
-    },
-    {
-      title: 'Mirage — Yoko Gold',
-      type: 'Music Video',
-      gradient: 'from-blue-900/60 via-blue-950/40 to-[#0A0A0A]',
-    },
-    {
-      title: 'Valentines Day — Vera',
+      title: 'Trell The Trainer x Thorne',
       type: 'Brand Film',
-      gradient: 'from-rose-900/50 via-rose-950/30 to-[#0A0A0A]',
+      year: '2026',
+      gradient: 'from-black/20 via-black/40 to-black/80',
+      image: '/trell-the-trainer.jpg',
+      link: 'https://www.instagram.com/reel/DVjC3nWDk0E/',
     },
     {
-      title: 'Salon Daniel',
-      type: 'Brand Campaign',
-      gradient: 'from-amber-900/50 via-amber-950/30 to-[#0A0A0A]',
-    },
-    {
-      title: 'Fridayy — Behind the Scenes',
-      type: 'Photo / Video',
-      gradient: 'from-emerald-900/50 via-emerald-950/30 to-[#0A0A0A]',
-    },
-    {
-      title: 'Chris Grey Sessions',
-      type: 'Photography',
-      gradient: 'from-indigo-900/50 via-indigo-950/30 to-[#0A0A0A]',
+      title: 'Capital Corner Group — Sami Intro Video',
+      type: 'Commercial',
+      year: '2025',
+      gradient: 'from-black/20 via-black/40 to-black/80',
+      image: '/capital-corner.jpg',
+      link: 'https://www.instagram.com/reel/DS0f0otktHC/',
     },
     {
       title: 'NAV — OMW2REXDALE',
       type: 'BTS Photo / Video',
-      gradient: 'from-slate-700/60 via-slate-900/40 to-[#0A0A0A]',
+      year: '2025',
+      gradient: 'from-black/20 via-black/40 to-black/80',
+      image: '/nav-omw2rexdale.jpg',
       link: 'https://www.instagram.com/p/DHymTNkpapt/?img_index=1',
     },
     {
       title: 'Fridayy — Below Zero',
       type: 'Music Video Reels',
-      gradient: 'from-cyan-900/50 via-cyan-950/30 to-[#0A0A0A]',
+      year: '2025',
+      gradient: 'from-black/20 via-black/40 to-black/80',
+      image: '/fridayy-below-zero.jpg',
       link: 'https://www.instagram.com/reel/DOEYRhtjnlm/',
     },
     {
-      title: 'Nige — Slide / Right One',
+      title: 'Nige — Right One',
       type: 'Music Video Reels',
-      gradient: 'from-orange-900/50 via-orange-950/30 to-[#0A0A0A]',
-      link: 'https://www.instagram.com/reel/DKvOqCPSmpD/',
+      year: '2025',
+      gradient: 'from-black/20 via-black/40 to-black/80',
+      image: '/nige.jpg',
+      link: 'https://www.tiktok.com/@iheartnige/video/7552681520251686157',
+    },
+    {
+      title: '"Was (I)t Worth It" Press Photos — Sofia Camara',
+      type: 'Editorial Photography',
+      year: '2025',
+      gradient: 'from-black/20 via-black/40 to-black/80',
+      image: '/sofia-camara.jpg',
+      link: 'https://www.instagram.com/p/DHheVJXu5ht/',
+    },
+    {
+      title: 'Make The Angels Cry — Chris Grey',
+      type: 'Music Video Production / BTS',
+      year: '2024',
+      gradient: 'from-black/20 via-black/40 to-black/80',
+      image: 'https://cdn.prod.website-files.com/66fd656818a085354c8eb2b0/6762474e6622a905ae54f072_DSC04964%20Large.jpeg',
+      link: 'https://www.youtube.com/watch?v=m_X2dUkO2ZY',
+    },
+    {
+      title: 'Fridayy — Back to You',
+      type: 'Music Video Production / Cover Art / BTS',
+      year: '2024',
+      gradient: 'from-black/20 via-black/40 to-black/80',
+      image: '/fridayy-back-to-you.jpg',
+      link: 'https://www.instagram.com/p/DBjsUzMxYvs/?img_index=1',
+    },
+    {
+      title: 'Fridayy — Without You',
+      type: 'BTS / Photo / Video',
+      year: '2024',
+      gradient: 'from-black/20 via-black/40 to-black/80',
+      image: 'https://cdn.prod.website-files.com/66fd656818a085354c8eb2b0/66fd84f31870ccec87eceb6b_DSC02729-Edit-compressed.jpeg',
+      link: 'https://www.instagram.com/p/C4QzkSOODqN/?img_index=1',
     },
     {
       title: 'Raf Saperra × Vogue India',
       type: 'Editorial Photography',
-      gradient: 'from-fuchsia-900/50 via-fuchsia-950/30 to-[#0A0A0A]',
+      year: '2024',
+      gradient: 'from-black/20 via-black/40 to-black/80',
+      image: '/vogue-india.jpg',
       link: 'https://www.vogue.in/content/raf-saperra-will-make-you-groove-to-pure-punjabi-folk-no-matter-where-in-the-world-you-are',
     },
     {
-      title: 'Trell The Trainer',
-      type: 'Brand Film',
-      gradient: 'from-green-900/50 via-green-950/30 to-[#0A0A0A]',
-      link: 'https://www.instagram.com/reel/DRZuMK9DjwK/',
+      title: 'NAV × Grandeur',
+      type: 'Music Video',
+      year: '2023',
+      gradient: 'from-black/20 via-black/40 to-black/80',
+      image: 'https://cdn.prod.website-files.com/66fd656818a085354c8eb2b0/67661bff5e6099e24a14920c_nav-granduer.png',
+      link: 'https://youtube.com/shorts/aJrb3bTnpK4?feature=share',
     },
     {
-      title: 'Capital Corner Group',
-      type: 'Commercial',
-      gradient: 'from-sky-900/50 via-sky-950/30 to-[#0A0A0A]',
-      link: 'https://www.instagram.com/reel/DS0f0otktHC/',
+      title: 'Mirage — Yoko Gold',
+      type: 'Music Video',
+      year: '2023',
+      gradient: 'from-black/20 via-black/40 to-black/80',
+      image: 'https://cdn.prod.website-files.com/66fd656818a085354c8eb2b0/67661593da4e11fcd84feba3_mirage-concept-cover%20Large.jpeg',
+      link: 'https://youtu.be/YVBOMKRxZrg',
+    },
+    {
+      title: 'Valentines Day — Vera',
+      type: 'Brand Film',
+      year: '2023',
+      gradient: 'from-black/20 via-black/40 to-black/80',
+      image: 'https://cdn.prod.website-files.com/66fd656818a085354c8eb2b0/676621be9f50819565d0dfde_vera-cover.png',
+      link: 'https://youtube.com/shorts/5E8RS27ay30?feature=share',
+    },
+    {
+      title: 'Hair Transformation — Salon Daniel',
+      type: 'Brand Campaign',
+      year: '2023',
+      gradient: 'from-black/20 via-black/40 to-black/80',
+      image: 'https://cdn.prod.website-files.com/66fd656818a085354c8eb2b0/67662326a6a05d76a3bbb301_salon-daniel.png',
+      link: 'https://youtube.com/shorts/iStnfJ3qBYk',
     },
   ]
 
+  const handleCardClick = (project) => {
+    const isYouTube = project.link?.includes('youtube') || project.link?.includes('youtu.be')
+    if (isYouTube) {
+      setSelectedProject(project)
+    } else if (project.link) {
+      window.open(project.link, '_blank', 'noopener,noreferrer')
+    }
+  }
+
   return (
     <section id="work" ref={sectionRef} className="px-6 pb-24">
+      {selectedProject && (
+        <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />
+      )}
+
       <div className="max-w-5xl mx-auto">
         {/* Section header */}
         <div className="animate-on-scroll mb-10">
           <p className="text-xs tracking-[0.25em] uppercase text-gold font-sans mb-3">Portfolio</p>
           <h2 className="font-serif text-3xl md:text-4xl">
-            Selected <span className="italic text-white/40">works</span>
+            Selected <span className="italic text-white/40">Works</span>
           </h2>
         </div>
 
         {/* 2-column grid */}
         <div className="grid md:grid-cols-2 gap-4">
           {projects.map((project, i) => (
-            <a
+            <div
               key={i}
-              href={project.link || '#work'}
-              target={project.link ? '_blank' : undefined}
-              rel={project.link ? 'noopener noreferrer' : undefined}
+              onClick={() => handleCardClick(project)}
               className={`animate-on-scroll delay-${(i % 4) + 1} group relative aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer transition-transform duration-500 hover:scale-[1.02]`}
             >
-              {/* Gradient background */}
+              {/* Background image */}
+              {project.image && (
+                <img
+                  src={project.image}
+                  alt={project.title}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              )}
+
+              {/* Gradient overlay */}
               <div className={`absolute inset-0 bg-gradient-to-b ${project.gradient}`} />
 
               {/* Type badge */}
@@ -324,6 +605,15 @@ function SelectedWork() {
                   {project.type}
                 </span>
               </div>
+
+              {/* Year badge */}
+              {project.year && (
+                <div className="absolute top-4 right-4 z-10">
+                  <span className="text-[11px] font-sans font-medium text-white/50 bg-[#111111]/80 backdrop-blur-sm rounded-full px-3 py-1.5">
+                    {project.year}
+                  </span>
+                </div>
+              )}
 
               {/* Bottom info */}
               <div className="absolute bottom-0 left-0 right-0 p-5 z-10 flex items-end justify-between">
@@ -340,7 +630,7 @@ function SelectedWork() {
 
               {/* Hover overlay */}
               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
-            </a>
+            </div>
           ))}
         </div>
       </div>
@@ -356,10 +646,10 @@ function Services() {
 
   const servicesList = [
     { icon: '🎬', title: 'Music Videos', desc: 'Cinematic music videos that amplify your visual identity' },
-    { icon: '📸', title: 'Editorial Photography', desc: 'Magazine-quality stills with a moody, high-fashion aesthetic' },
-    { icon: '📱', title: 'Social Content', desc: 'Vertical-first reels engineered for organic growth' },
-    { icon: '🎥', title: 'Brand Films', desc: 'Narrative-driven stories for luxury brands' },
-    { icon: '✨', title: 'Creative Direction', desc: 'End-to-end vision from concept to color grade' },
+    { icon: '📸', title: 'Editorial Photography', desc: 'Magazine quality stills with a moody, high fashion aesthetic' },
+    { icon: '📱', title: 'Social Content', desc: 'Vertical first reels engineered for organic growth' },
+    { icon: '🎥', title: 'Brand Films', desc: 'Narrative driven stories for luxury brands' },
+    { icon: '✨', title: 'Creative Direction', desc: 'End to end vision from concept to color grade' },
     { icon: '📈', title: 'Organic Marketing', desc: 'Content strategy that drives sustainable growth' },
   ]
 
@@ -370,7 +660,7 @@ function Services() {
       <div className="max-w-5xl mx-auto">
         <div className="grid md:grid-cols-2 gap-16">
           {/* Left side */}
-          <div className="animate-on-scroll">
+          <div className="animate-from-left">
             <p className="text-xs tracking-[0.25em] uppercase text-gold font-sans mb-3">What I Do</p>
             <h2 className="font-serif text-3xl md:text-4xl mb-6">
               Services that shape<br />
@@ -401,13 +691,13 @@ function Services() {
             {servicesList.map((service, i) => (
               <div
                 key={i}
-                className={`animate-on-scroll delay-${(i % 5) + 1} group flex items-start gap-4 p-4 rounded-xl hover:bg-white/[0.03] transition-all duration-300 cursor-default`}
+                className={`animate-from-right delay-${i + 1} group flex items-start gap-4 p-4 rounded-xl border border-transparent hover:border-gold/15 hover:bg-white/[0.03] transition-all duration-400 cursor-default`}
               >
-                <span className="w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-lg flex-shrink-0">
+                <span className="w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.06] group-hover:border-gold/30 group-hover:bg-gold/5 flex items-center justify-center text-lg flex-shrink-0 transition-all duration-300">
                   {service.icon}
                 </span>
                 <div>
-                  <h3 className="font-sans text-[15px] text-white font-medium mb-1 group-hover:text-gold transition-colors">
+                  <h3 className="font-sans text-[15px] text-white font-medium mb-1 group-hover:text-gold transition-colors duration-300">
                     {service.title}
                   </h3>
                   <p className="font-sans text-[13px] text-white/35 leading-relaxed">
@@ -423,6 +713,19 @@ function Services() {
   )
 }
 
+function AboutStat({ num, label }) {
+  const [display, ref] = useCounter(num)
+  const match = display.match(/^(\d+)(.*)/)
+  const n = match ? match[1] : display
+  const suffix = match ? match[2] : ''
+  return (
+    <div ref={ref} className="animate-scale-in text-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:border-gold/20 transition-colors duration-300">
+      <p className="font-serif text-xl text-white">{n}<span className="text-sm">{suffix}</span></p>
+      <p className="text-[11px] text-white/30 font-sans tracking-wider uppercase mt-0.5">{label}</p>
+    </div>
+  )
+}
+
 /* =======================================================
    ABOUT / BIO
    ======================================================= */
@@ -434,55 +737,42 @@ function About() {
       <div className="max-w-5xl mx-auto">
         <div className="grid md:grid-cols-2 gap-16 items-center">
           {/* Photo placeholder */}
-          <div className="animate-on-scroll">
-            <div className="aspect-[3/4] rounded-2xl bg-gradient-to-b from-secondary via-secondary/60 to-[#0A0A0A] border border-white/[0.04] overflow-hidden relative">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center space-y-3">
-                  <div className="w-20 h-20 mx-auto rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center">
-                    <span className="font-serif text-2xl text-gold">A</span>
-                  </div>
-                  <p className="text-xs tracking-[0.2em] uppercase text-white/20 font-sans">Amanzeb</p>
-                </div>
-              </div>
+          <div className="animate-from-left">
+            <div className="aspect-[3/4] rounded-2xl overflow-hidden border border-white/[0.06]">
+              <img
+                src="/about-photo.jpg"
+                alt="Amanzeb"
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
 
           {/* Bio text */}
-          <div className="animate-on-scroll delay-2 space-y-6">
+          <div className="animate-from-right delay-2 space-y-6">
             <p className="text-xs tracking-[0.25em] uppercase text-gold font-sans">About</p>
             <h2 className="font-serif text-3xl md:text-4xl leading-tight">
               How I got <span className="italic text-white/40">here</span>
             </h2>
             <div className="space-y-4">
               <p className="text-[15px] font-sans text-white/45 leading-relaxed">
-                I've been making content for brands since <span className="text-white/70 font-medium">2022</span>.
-                It started with a passion for video production — through a love for our craft,
-                we've been lucky enough to work with some amazing brands and artists.
+                I've been making content since <span className="text-white/70 font-medium">2022</span>, starting as a BTS photographer before growing into full video production and creative direction.
               </p>
               <p className="text-[15px] font-sans text-white/45 leading-relaxed">
-                With a background in <span className="text-white/70 font-medium">editorial photography</span> —
-                shooting for <span className="text-gold/70 font-medium">Vogue India</span> and behind the scenes
-                with <span className="text-white/70 font-medium">Lil Tecca</span> — I bring a cinematic,
-                fashion-forward eye to every project.
+                From shooting editorial for <span className="text-gold/70 font-medium">Vogue India</span> to directing music videos and brand films, I've evolved into a <span className="text-white/70 font-medium">multi-hyphenate creative</span> who brings a cinematic, fashion forward eye to every project.
               </p>
               <p className="text-[15px] font-sans text-white/45 leading-relaxed">
-                My aesthetic blends the moody, cinematic style of Toronto music videos
-                with the editorial precision of luxury fashion houses. Every frame is crafted
-                to feel like it belongs in a magazine.
+                Photographer. Director. Creative. Every frame is crafted to feel intentional, editorial, and impossible to scroll past.
               </p>
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 pt-4">
               {[
-                { num: '50+', label: 'Brands' },
-                { num: '2M+', label: 'Views' },
+                { num: '100+', label: 'Videos' },
+                { num: '10M+', label: 'Views' },
                 { num: '2022', label: 'Est.' },
               ].map((stat) => (
-                <div key={stat.label} className="text-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                  <p className="font-serif text-xl text-white">{stat.num}</p>
-                  <p className="text-[11px] text-white/30 font-sans tracking-wider uppercase mt-0.5">{stat.label}</p>
-                </div>
+                <AboutStat key={stat.label} num={stat.num} label={stat.label} />
               ))}
             </div>
           </div>
@@ -519,7 +809,7 @@ function Contact() {
           </p>
         </div>
 
-        <div className="animate-on-scroll delay-1">
+        <div className="animate-scale-in delay-1">
           {submitted ? (
             <div className="rounded-2xl border border-gold/20 bg-white/[0.02] p-12 text-center">
               <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center">
@@ -589,8 +879,7 @@ function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-20">
           {/* Logo */}
           <a href="#" className="font-serif text-2xl">
-            <span className="text-white">Aman</span>
-            <span className="text-gold italic">zeb</span>
+            <span className="text-white">amanzeb</span>
           </a>
 
           {/* Links */}
@@ -643,6 +932,18 @@ function App() {
 
   return (
     <div ref={appRef} className="relative">
+      <ScrollProgress />
+      {/* Global animated gradient background */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-[#0A0A0A]" />
+        <div className="blob-1 absolute -top-64 -left-64 w-[800px] h-[800px] rounded-full bg-violet-600/20 blur-[160px]" />
+        <div className="blob-2 animation-delay-2 absolute -top-32 right-0 w-[650px] h-[650px] rounded-full bg-amber-500/10 blur-[150px]" />
+        <div className="blob-3 animation-delay-4 absolute top-[45%] -left-32 w-[650px] h-[550px] rounded-full bg-cyan-600/12 blur-[160px]" />
+        <div className="blob-4 animation-delay-6 absolute top-[35%] right-0 w-[550px] h-[550px] rounded-full bg-fuchsia-700/12 blur-[150px]" />
+        <div className="blob-5 animation-delay-2 absolute bottom-0 left-1/3 w-[650px] h-[650px] rounded-full bg-violet-700/15 blur-[160px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:60px_60px]" />
+      </div>
+
       <FloatingNav />
       <Hero />
       <SocialProof />

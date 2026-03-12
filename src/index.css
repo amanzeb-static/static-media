@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================
+   GLOBAL STYLES
+   ============================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: #0A0A0A;
+  color: #ffffff;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: rgba(201, 169, 110, 0.4);
+  color: #ffffff;
+}
+
+/* ============================
+   SCROLLBAR
+   ============================ */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0A0A0A;
+}
+::-webkit-scrollbar-thumb {
+  background: #C9A96E;
+  border-radius: 3px;
+}
+
+/* ============================
+   ANIMATIONS
+   ============================ */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.animate-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.animate-on-scroll.delay-1 { transition-delay: 0.1s; }
+.animate-on-scroll.delay-2 { transition-delay: 0.2s; }
+.animate-on-scroll.delay-3 { transition-delay: 0.3s; }
+.animate-on-scroll.delay-4 { transition-delay: 0.4s; }
+.animate-on-scroll.delay-5 { transition-delay: 0.5s; }
+
+/* ============================
+   MARQUEE
+   ============================ */
+.marquee-container {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.marquee-track {
+  display: inline-flex;
+  animation: marquee 30s linear infinite;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ============================
+   GRAIN OVERLAY
+   ============================ */
+.grain-overlay::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ============================
+   GLASS EFFECT
+   ============================ */
+.glass {
+  background: rgba(10, 10, 10, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(201, 169, 110, 0.1);
+}
+
+/* ============================
+   GRADIENT TEXT
+   ============================ */
+.gradient-text {
+  background: linear-gradient(135deg, #C9A96E 0%, #D4B97A 50%, #C9A96E 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================
+   BUTTON GLOW
+   ============================ */
+.btn-gold {
+  background: linear-gradient(135deg, #C9A96E 0%, #D4B97A 100%);
+  color: #0A0A0A;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-gold::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-gold:hover::before {
+  left: 100%;
+}
+
+.btn-gold:hover {
+  box-shadow: 0 0 30px rgba(201, 169, 110, 0.5);
+  transform: translateY(-2px);
+}
+
+/* ============================
+   CARD HOVER
+   ============================ */
+.card-hover {
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.card-hover:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================
+   DIVIDER
+   ============================ */
+.gold-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C9A96E, transparent);
+}

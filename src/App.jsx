@@ -91,7 +91,6 @@ function FloatingNav() {
   const navLinks = [
     { label: 'Work', href: '#work' },
     { label: 'Services', href: '#services' },
-    { label: 'Packages', href: '#packages' },
     { label: 'About', href: '#about' },
     { label: 'Contact', href: '#contact' },
   ]
@@ -728,133 +727,6 @@ function AboutStat({ num, label }) {
 }
 
 /* =======================================================
-   PACKAGES — Three-tier boutique pricing
-   ======================================================= */
-function Packages() {
-  const sectionRef = useScrollAnimation()
-
-  const packages = [
-    {
-      name: 'Social Content',
-      tag: 'Starter',
-      highlight: false,
-      description: 'For brands ready to build a consistent, cinematic social presence that stops the scroll.',
-      includes: [
-        'Short-form video content (Reels / TikTok)',
-        'Editorial photography session',
-        'Color grading & professional editing',
-        'Content strategy session',
-      ],
-    },
-    {
-      name: 'Creative Partner',
-      tag: 'Most Popular',
-      highlight: true,
-      description: 'The full creative experience — elevated storytelling across platforms with directorial vision.',
-      includes: [
-        'Everything in Social Content',
-        'Brand film or music video production',
-        'Creative direction & concept development',
-        'Multi-platform content suite',
-        'Priority turnaround',
-      ],
-    },
-    {
-      name: 'Brand Partner',
-      tag: 'Full Suite',
-      highlight: false,
-      description: 'An end-to-end partnership for brands ready to own their space with a cinematic identity.',
-      includes: [
-        'Everything in Creative Partner',
-        'Full organic marketing strategy',
-        'Editorial & campaign photography',
-        'Ongoing content retainer',
-        'Direct creative consultation',
-      ],
-    },
-  ]
-
-  return (
-    <section id="packages" ref={sectionRef} className="px-6 py-24">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="animate-on-scroll text-center mb-16">
-          <p className="text-xs tracking-[0.25em] uppercase text-gold font-sans mb-3">Packages</p>
-          <h2 className="font-serif text-3xl md:text-4xl mb-4">
-            Invest in your <span className="italic text-white/40">vision</span>
-          </h2>
-          <p className="text-[15px] font-sans text-white/40 max-w-lg mx-auto leading-relaxed">
-            Every package is tailored to your brand. Pricing is custom — reach out and let's build something together.
-          </p>
-        </div>
-
-        {/* Cards */}
-        <div className="grid md:grid-cols-3 gap-6">
-          {packages.map((pkg, i) => (
-            <div
-              key={i}
-              className={`animate-on-scroll delay-${i + 1} relative rounded-2xl p-8 flex flex-col ${
-                pkg.highlight
-                  ? 'border border-gold/40 bg-white/[0.04] shadow-xl shadow-gold/10'
-                  : 'border border-white/[0.06] bg-white/[0.02]'
-              }`}
-            >
-              {/* Most Popular badge */}
-              {pkg.highlight && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                  <span className="text-[11px] font-sans font-semibold text-primary bg-gold px-4 py-1.5 rounded-full whitespace-nowrap tracking-wide">
-                    Most Popular
-                  </span>
-                </div>
-              )}
-
-              {/* Tag */}
-              <p className="text-[11px] tracking-[0.2em] uppercase text-gold font-sans mb-3">{pkg.tag}</p>
-
-              {/* Name */}
-              <h3 className="font-serif text-2xl text-white mb-2">{pkg.name}</h3>
-
-              {/* Pricing label */}
-              <p className="text-[11px] font-sans text-white/25 mb-5 tracking-[0.2em] uppercase">Custom Pricing</p>
-
-              {/* Divider */}
-              <div className="w-10 h-px bg-gold/30 mb-6" />
-
-              {/* Description */}
-              <p className="text-[14px] font-sans text-white/40 leading-relaxed mb-6">{pkg.description}</p>
-
-              {/* Feature list */}
-              <ul className="space-y-3 mb-8 flex-1">
-                {pkg.includes.map((item, j) => (
-                  <li key={j} className="flex items-start gap-3 text-[13px] font-sans text-white/50">
-                    <span className="w-4 h-4 rounded-full border border-gold/40 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-gold/60" />
-                    </span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-
-              {/* CTA */}
-              <a
-                href="#contact"
-                className={`text-center text-[13px] font-sans font-semibold py-3 rounded-xl transition-all duration-300 ${
-                  pkg.highlight
-                    ? 'bg-gold text-primary hover:bg-gold-light hover:shadow-lg hover:shadow-gold/20'
-                    : 'border border-white/[0.08] text-white/60 hover:border-gold/30 hover:text-gold hover:bg-white/[0.03]'
-                }`}
-              >
-                Inquire Now
-              </a>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* =======================================================
    ABOUT / BIO
    ======================================================= */
 function About() {
@@ -947,7 +819,7 @@ function Contact() {
             Let's create something <span className="italic text-white/40">extraordinary</span>
           </h2>
           <p className="text-[15px] font-sans text-white/40">
-            Ready to elevate your brand's visual presence? Send me a message.
+            Every project is bespoke. Tell me your vision and I'll craft a custom quote.
           </p>
         </div>
 
@@ -1027,7 +899,7 @@ function Footer() {
 
           {/* Links */}
           <div className="flex flex-wrap justify-center gap-6">
-            {['Work', 'Services', 'Packages', 'About', 'Contact'].map((link) => (
+            {['Work', 'Services', 'About', 'Contact'].map((link) => (
               <a
                 key={link}
                 href={`#${link.toLowerCase()}`}
@@ -1092,7 +964,6 @@ function App() {
       <SocialProof />
       <SelectedWork />
       <Services />
-      <Packages />
       <About />
       <Contact />
       <Footer />
